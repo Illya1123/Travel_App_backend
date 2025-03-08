@@ -42,7 +42,5 @@ router.post('/send-otp', sendOTP)
 // Xác thực mã OTP
 router.post('/verify-otp', verifyOTP)
 
-// Đăng ký tài khoản (chỉ được gọi khi OTP hợp lệ)
-router.post('/register', register)
 
 export default router
