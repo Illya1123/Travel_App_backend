@@ -4,6 +4,7 @@ import cors from 'cors';
 import { connectDatabase } from './configs/database.js';
 import initRoutes from './routes/index.js';
 import cookieParser from 'cookie-parser';
+import { logRoutes } from './middlewares/logRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -20,5 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 })();
 
 initRoutes(app);
+
+// Hiển thị toàn bộ API trên terminal
+logRoutes(app);
 
 export const viteNodeApp = app;
