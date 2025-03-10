@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Kết nối MongoDB
 (async () => {
-    await connectDatabase(process.env.DATABASE_URI);
+    await connectDatabase(process.env.DB_ATLAS);
 })();
 
 initRoutes(app);
