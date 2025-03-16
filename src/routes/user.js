@@ -7,9 +7,12 @@ import {
     logout, 
     forgotPassword, 
     resetPassword, 
+    forgotPasswordUseOTP,
+    resetPasswordWithOTP,
     getUsers, 
     deleteUser, 
     updateUser, 
+    updateInfoContactUser,
     updateUserByAdmin,
     sendOTP,
     verifyOTP 
@@ -25,10 +28,16 @@ router.post('/login', login)
 router.get('/current', verifyAccessToken, getCurrent)
 router.post('/refreshtoken', refreshAccessToken)
 router.get('/logout', logout)
+router.put('/updateInfoContactUser', verifyAccessToken, updateInfoContactUser)
 
 // Password recovery
 router.get('/forgotpassword', forgotPassword)
 router.put('/resetpassword', resetPassword)
+router.put('/resetpassword/:token', resetPassword)
+
+//for mobile version
+router.get('/forgotPasswordWithOtp', forgotPasswordUseOTP)
+router.put('/resetPasswordWithOtp', resetPasswordWithOTP)
 
 // Admin routes (require admin permission)
 router.get('/', [verifyAccessToken, isAdmin], getUsers)

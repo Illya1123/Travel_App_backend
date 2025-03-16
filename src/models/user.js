@@ -1,7 +1,6 @@
-import { Schema, Types, model } from "mongoose"; // Erase if already required
+import { Schema, Types, model } from "mongoose";
 import { genSaltSync, hash, compare } from "bcrypt";
 import { randomBytes, createHash } from "crypto";
-// Declare the Schema of the Mongo model
 
 const DEFAULT_AVATAR_PATH =
   "https://tintuc.dienthoaigiakho.vn/wp-content/uploads/2024/01/c39af4399a87bc3d7701101b728cddc9.jpg";
@@ -32,11 +31,12 @@ var userSchema = new Schema(
       type: String,
       default: "user",
     },
-    cart: {
-      type: Array,
-      default: [],
+    address: {
+      type: String,
     },
-    address: [{ type: Types.ObjectId, ref: "Address" }],
+    dateOfBirth: {
+      type: String,
+    },
     wishlist: [{ type: Types.ObjectId, ref: "Product" }],
     isBlocked: {
       type: Boolean,

@@ -5,6 +5,8 @@ import { connectDatabase } from './configs/database.js';
 import initRoutes from './routes/index.js';
 import cookieParser from 'cookie-parser';
 import { logRoutes } from './middlewares/logRoutes.js';
+import { startOrderCheckCron, startDeleteExpiredOrdersInterval } from "./middlewares/orderCheck.js";
+
 
 dotenv.config();
 const app = express();
@@ -24,5 +26,9 @@ initRoutes(app);
 
 // Hiển thị toàn bộ API trên terminal
 logRoutes(app);
+
+// Chạy kiểm tra đơn hàng định kỳ
+startOrderCheckCron();
+startDeleteExpiredOrdersInterval();
 
 export const viteNodeApp = app;

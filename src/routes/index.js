@@ -1,11 +1,14 @@
 import userRouter from './user.js'
 import tourRouter from './tour.js'
+import momoRouter from './momo.js'
+import tourOrderRouter from './tour_order.js'
 import { notFound, errHandler } from '../middlewares/errHandler.js'
 
 const initRoutes = (app) => {
     app.use('/api/user', userRouter)
     app.use('/api/tour', tourRouter)
-
+    app.use('/api/payment-momo', momoRouter)
+    app.use('/api/tour-order', tourOrderRouter)
 
 
     app.use(notFound)

@@ -1,4 +1,5 @@
 import User from '../models/user.js';
+import OTP from '../models/otp.js';
 import asyncHandler from 'express-async-handler';
 import { generateAccessToken, generateRefreshToken } from '../middlewares/jwt.js';
 import jwt from 'jsonwebtoken';
@@ -10,45 +11,49 @@ const otpStore = {}
 
 // Gửi mã OTP tới email
 export const sendOTP = asyncHandler(async (req, res) => {
-    const { email } = req.body
-    if (!email) throw new Error('Missing email')
+    const { email } = req.body;
+    if (!email) throw new Error("Missing email");
 
     // Tạo mã OTP ngẫu nhiên
-    const otp = Math.floor(1000 + Math.random() * 9000).toString()
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     
-    // Lưu mã OTP với thời gian hết hạn (15 phút)
-    const expires = Date.now() + 15 * 60 * 1000
-    otpStore[email] = { otp, expires }
-    
+    // Thời gian hết hạn OTP (15 phút)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    // Cập nhật hoặc tạo mới OTP cho email
+    await OTP.findOneAndUpdate(
+        { email }, 
+        { otp, expiresAt }, 
+        { upsert: true, new: true }
+    );
+
     // Gửi mã OTP qua email
     const html = `<p><b>Travel App</b>: Mã OTP của bạn là: <b>${otp}</b><br> 
-có hiệu lực trong 15 phút, sử dụng để xác thực.<br> 
-Tuyệt đối không cung cấp mã OTP này cho bất kỳ ai.<br>
-Trân trọng!</p>`;
+        Có hiệu lực trong 15 phút. Không chia sẻ OTP với bất kỳ ai.<br>
+        Trân trọng!</p>`;
 
-    await sendMail({ email, html })
+    await sendMail({ email, html });
 
-    return res.status(200).json({ success: true, message: 'OTP sent to email' })
-})
+    return res.status(200).json({ success: true, message: "OTP sent to email" });
+});
 
 // Xác thực mã OTP
 export const verifyOTP = asyncHandler(async (req, res) => {
-    const { email, otp } = req.body
-    const storedOtpData = otpStore[email]
+    const { email, otp } = req.body;
+    if (!email || !otp) throw new Error("Missing inputs");
 
-    if (!storedOtpData) {
-        return res.status(400).json({ success: false, message: 'OTP not found' })
+    // Tìm OTP trong MongoDB
+    const storedOtpData = await OTP.findOne({ email }).sort({ expiresAt: -1 });
+
+    if (!storedOtpData || storedOtpData.otp !== otp || storedOtpData.expiresAt < new Date()) {
+        return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
 
-    // Kiểm tra mã OTP và thời gian hợp lệ
-    if (storedOtpData.otp !== otp || storedOtpData.expires < Date.now()) {
-        return res.status(400).json({ success: false, message: 'Invalid or expired OTP' })
-    }
+    // Xóa OTP sau khi xác thực thành công
+    await OTP.deleteOne({ _id: storedOtpData._id });
 
-    // Xác thực thành công, xóa OTP khỏi bộ nhớ
-    delete otpStore[email]
-    return res.status(200).json({ success: true, message: 'OTP verified' })
-})
+    return res.status(200).json({ success: true, message: "OTP verified" });
+});
 
 export const register = asyncHandler(async (req, res) => {
     const { email, password, name } = req.body;
@@ -151,7 +156,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     const resetToken = user.createPasswordChangedToken()
     await user.save()
 
-    const html = `Xin vui lòng click vào link dưới đây để thay đổi mật khẩu của bạn.Link này sẽ hết hạn sau 15 phút kể từ bây giờ. <a href=${process.env.URL_SERVER}/api/user/reset-password/${resetToken}>Click here</a>`
+    const html = `Xin vui lòng click vào link dưới đây để thay đổi mật khẩu của bạn.Link này sẽ hết hạn sau 15 phút kể từ bây giờ. <a href=${process.env.URL_SERVER}/api/user/resetpassword/${resetToken}>Click here</a>`
 
     const data = {
         email,
@@ -165,7 +170,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 })
 export const resetPassword = asyncHandler(async (req, res) => {
     const { password, token } = req.body
-    if (!password || !token) throw new Error('Missing imputs')
+    if (!password || !token) throw new Error('Missing inputs')
     const passwordResetToken = crypto.createHash('sha256').update(token).digest('hex')
     const user = await User.findOne({ passwordResetToken, passwordResetExpires: { $gt: Date.now() } })
     if (!user) throw new Error('Invalid reset token')
@@ -179,6 +184,65 @@ export const resetPassword = asyncHandler(async (req, res) => {
         mes: user ? 'Updated password' : 'Something went wrong'
     })
 })
+
+// Gửi mã OTP khi quên mật khẩu
+export const forgotPasswordUseOTP = asyncHandler(async (req, res) => {
+    const { email } = req.query
+    if (!email) throw new Error('Vui lòng nhập email');
+
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('Người dùng không tồn tại');
+
+    // Tạo mã OTP 4 chữ số
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Thời gian hết hạn (15 phút)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    // Cập nhật hoặc tạo mới OTP cho email
+    await OTP.findOneAndUpdate(
+        { email }, 
+        { otp, expiresAt }, 
+        { upsert: true, new: true }
+    );
+
+    // Nội dung email
+    const html = `<p><b>Travel App</b>: Mã OTP đặt lại mật khẩu của bạn là: <b>${otp}</b><br> 
+    Mã này có hiệu lực trong 15 phút. Không chia sẻ OTP với bất kỳ ai.<br>
+    Trân trọng!</p>`;
+
+    // Gửi email chứa OTP
+    await sendMail({ email, html });
+
+    return res.status(200).json({ success: true, message: 'OTP đã được gửi đến email' });
+});
+
+// Xác thực OTP và đặt lại mật khẩu
+export const resetPasswordWithOTP = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) throw new Error("Thiếu thông tin đầu vào");
+
+    // Kiểm tra OTP trong MongoDB
+    const storedOtpData = await OTP.findOne({ email }).sort({ expiresAt: -1 });
+
+    if (!storedOtpData || storedOtpData.otp !== otp || storedOtpData.expiresAt < new Date()) {
+        return res.status(400).json({ success: false, message: "OTP sai hoặc đã hết hạn" });
+    }
+
+    // Tìm user và đặt lại mật khẩu
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("Người dùng không tồn tại");
+
+    user.password = newPassword;
+    await user.save();
+
+    // Xóa OTP sau khi sử dụng
+    await OTP.deleteOne({ _id: storedOtpData._id });
+
+    return res.status(200).json({ success: true, message: "Mật khẩu đã được đặt lại thành công" });
+});
+
+
 export const getUsers = asyncHandler(async (req, res) => {
     const response = await User.find().select('-refreshToken -password -role')
     return res.status(200).json({
@@ -215,3 +279,26 @@ export const updateUserByAdmin = asyncHandler(async (req, res) => {
         updatedUser: response ? response : 'Some thing went wrong'
     })
 })
+
+export const updateInfoContactUser = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { mobile, address, dateOfBirth } = req.body;
+
+    if (!_id) throw new Error('Missing user ID');
+    if (!mobile && !address && !dateOfBirth) {
+        return res.status(400).json({ success: false, message: 'No updates provided' });
+    }
+
+    const updateFields = {};
+    if (mobile) updateFields.mobile = mobile;
+    if (address) updateFields.address = address;
+    if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
+
+    const updatedUser = await User.findByIdAndUpdate(_id, updateFields, { new: true })
+        .select('-password -role -refreshToken');
+
+    return res.status(200).json({
+        success: updatedUser ? true : false,
+        updatedUser: updatedUser || 'Something went wrong'
+    });
+});
