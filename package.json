@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon",
-    "start": "vite --host"
+    "start": "yarn swagger && vite --host",
+    "swagger": "node ./src/configs/swagger-ui/swagger.js"
   },
   "license": "MIT",
   "dependencies": {
@@ -21,7 +22,10 @@
     "mongoose": "^8.10.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "swagger-autogen": "2.23.7",
+    "swagger-jsdoc": "6.2.8",
+    "swagger-ui-express": "5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9",

@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import { logRoutes } from './middlewares/logRoutes.js';
 import { startOrderCheckCron, startDeleteExpiredOrdersInterval } from "./middlewares/orderCheck.js";
 
-
 dotenv.config();
 const app = express();
 app.use(cookieParser());
@@ -25,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 initRoutes(app);
 
 // Hiển thị toàn bộ API trên terminal
-logRoutes(app);
+// logRoutes(app);
 
 // Chạy kiểm tra đơn hàng định kỳ
 startOrderCheckCron();

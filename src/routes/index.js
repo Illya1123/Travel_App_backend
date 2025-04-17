@@ -2,6 +2,8 @@ import userRouter from './user.js'
 import tourRouter from './tour.js'
 import momoRouter from './momo.js'
 import tourOrderRouter from './tour_order.js'
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from '../configs/swagger-ui/swagger_output.json'
 import { notFound, errHandler } from '../middlewares/errHandler.js'
 
 const initRoutes = (app) => {
@@ -10,7 +12,7 @@ const initRoutes = (app) => {
     app.use('/api/payment-momo', momoRouter)
     app.use('/api/tour-order', tourOrderRouter)
 
-
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     app.use(notFound)
     app.use(errHandler)
 }

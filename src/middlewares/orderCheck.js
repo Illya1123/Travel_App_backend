@@ -22,12 +22,10 @@ export const deleteExpiredOrders = async () => {
 // Hàm kiểm tra trạng thái thanh toán của đơn hàng
 export const checkAllOrders = async () => {
   try {
-    console.log("🔍 Đang kiểm tra trạng thái thanh toán...");
-
     const orders = await TourOrder.find({ status: "Chưa hoàn thành giao dịch" });
 
     if (orders.length === 0) {
-      console.log("✅ Không có đơn hàng nào cần kiểm tra.");
+      // console.log("✅ Không có đơn hàng nào cần kiểm tra.");
       return;
     }
 
@@ -63,7 +61,6 @@ export const checkAllOrders = async () => {
 export const startOrderCheckCron = () => {
   cron.schedule("*/30 * * * * *", () => {
     checkAllOrders();
-    console.log("🔄 Đang kiểm tra đơn hàng mỗi 30 giây...");
   });
 };
 
