@@ -1,21 +1,21 @@
 import express from 'express'
-import { 
-    register, 
-    login, 
-    getCurrent, 
-    refreshAccessToken, 
-    logout, 
-    forgotPassword, 
-    resetPassword, 
+import {
+    register,
+    login,
+    getCurrent,
+    refreshAccessToken,
+    logout,
+    forgotPassword,
+    resetPassword,
     forgotPasswordUseOTP,
     resetPasswordWithOTP,
-    getUsers, 
-    deleteUser, 
-    updateUser, 
+    getUsers,
+    deleteUser,
+    updateUser,
     updateInfoContactUser,
     updateUserByAdmin,
     sendOTP,
-    verifyOTP 
+    verifyOTP,
 } from '../controllers/user.js'
 
 import { verifyAccessToken, isAdmin } from '../middlewares/verifyToken.js'
@@ -50,6 +50,5 @@ router.post('/send-otp', sendOTP)
 
 // Xác thực mã OTP
 router.post('/verify-otp', verifyOTP)
-
 
 export default router

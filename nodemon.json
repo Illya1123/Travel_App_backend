@@ -1,7 +1,6 @@
 {
     "watch": ["src"],
-    "ext": "js,jsx,ts,tsx,json",
+    "ext": "js,ts,json",
     "ignore": ["node_modules"],
-    "exec": "node -r dotenv/config ./src/app.js"
-  }
-  
+    "exec": "vite --host"
+}
