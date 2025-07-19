@@ -161,7 +161,9 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     const resetToken = user.createPasswordChangedToken()
     await user.save()
 
-    const html = `Xin vui lòng click vào link dưới đây để thay đổi mật khẩu của bạn.Link này sẽ hết hạn sau 15 phút kể từ bây giờ. <a href=${process.env.URL_SERVER}/api/user/resetpassword/${resetToken}>Click here</a>`
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:4000' // URL của frontend
+    const html = `Xin vui lòng click vào link dưới đây để thay đổi mật khẩu của bạn. Link này sẽ hết hạn sau 15 phút.<br> 
+    <a href="${clientUrl}/reset-password/${resetToken}" target="_blank">Đổi mật khẩu tại đây</a>`
 
     const data = {
         email,
