@@ -13,6 +13,7 @@ import {
     deleteUser,
     updateUser,
     updateInfoContactUser,
+    updateUserInfo,
     updateUserByAdmin,
     sendOTP,
     verifyOTP,
@@ -29,6 +30,7 @@ router.get('/current', verifyAccessToken, getCurrent)
 router.post('/refreshtoken', refreshAccessToken)
 router.get('/logout', logout)
 router.put('/updateInfoContactUser', verifyAccessToken, updateInfoContactUser)
+router.put('/', verifyAccessToken, updateUserInfo)
 
 // Password recovery
 router.get('/forgotpassword', forgotPassword)

@@ -312,3 +312,28 @@ export const updateInfoContactUser = asyncHandler(async (req, res) => {
         updatedUser: updatedUser || 'Something went wrong',
     })
 })
+
+export const updateUserInfo = asyncHandler(async (req, res) => {
+    const { _id } = req.user
+    const { name, avatar, mobile, gender, address, dateOfBirth } = req.body
+
+    if (!_id) throw new Error('Thiếu ID người dùng')
+
+    // Chuẩn hóa dữ liệu trước khi cập nhật
+    const updateFields = {}
+    if (name) updateFields.name = name
+    if (avatar) updateFields.avatar = avatar
+    if (mobile) updateFields.mobile = mobile
+    if (gender) updateFields.gender = gender
+    if (address) updateFields.address = address
+    if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth // dạng "dd/mm/yyyy"
+
+    const updatedUser = await User.findByIdAndUpdate(_id, updateFields, { new: true }).select(
+        '-password -refreshToken -role'
+    )
+
+    return res.status(200).json({
+        success: !!updatedUser,
+        updatedUser: updatedUser || 'Không thể cập nhật người dùng',
+    })
+})

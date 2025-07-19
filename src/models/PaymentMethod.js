@@ -3,9 +3,9 @@ import { Schema, Types, model } from 'mongoose'
 const Payment_MethodSchema = new Schema(
     {
         name: {
-        type: String,
-        required: true,
-        unique: true,
+            type: String,
+            required: true,
+            unique: true,
         },
         disabled: {
             type: Boolean,

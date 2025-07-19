@@ -19,6 +19,9 @@ var userSchema = new Schema(
         mobile: {
             type: String,
         },
+        gender: {
+            type: String,
+        },
         avatar: {
             type: String,
             default: DEFAULT_AVATAR_PATH,

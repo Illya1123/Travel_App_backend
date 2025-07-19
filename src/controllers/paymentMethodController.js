@@ -63,11 +63,7 @@ export const updatePaymentMethodStatus = async (req, res) => {
             })
         }
 
-        const updated = await PaymentMethod.findOneAndUpdate(
-            { name },
-            { disabled },
-            { new: true }
-        )
+        const updated = await PaymentMethod.findOneAndUpdate({ name }, { disabled }, { new: true })
 
         if (!updated) {
             return res.status(404).json({
