@@ -4,6 +4,7 @@ import paymentMethodRouter from './paymentmethod.js'
 import momoRouter from './momo.js'
 import tourOrderRouter from './tour_order.js'
 import uploadRouter from './upload.js'
+import voucherRouter from './voucher.js'
 import commentsTourRouter from './comments_tour.js'
 import swaggerUi from 'swagger-ui-express'
 import swaggerDocument from '../configs/swagger-ui/swagger_output.json'
@@ -17,6 +18,7 @@ const initRoutes = (app) => {
     app.use('/api/comments', commentsTourRouter)
     app.use('/api/payment-method', paymentMethodRouter)
     app.use('/api/upload', uploadRouter)
+    app.use('/api/vouchers', voucherRouter)
 
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
     app.use(notFound)

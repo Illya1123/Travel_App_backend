@@ -563,6 +563,11 @@
                 "description": "",
                 "parameters": [
                     {
+                        "name": "user-agent",
+                        "in": "header",
+                        "type": "string"
+                    },
+                    {
                         "name": "body",
                         "in": "body",
                         "schema": {
@@ -572,6 +577,9 @@
                                     "example": "any"
                                 },
                                 "totalPrice": {
+                                    "example": "any"
+                                },
+                                "originalPrice": {
                                     "example": "any"
                                 },
                                 "paymentMethod": {
@@ -690,6 +698,15 @@
                                 },
                                 "totalPrice": {
                                     "example": "any"
+                                },
+                                "originalPrice": {
+                                    "example": "any"
+                                },
+                                "discountAmount": {
+                                    "example": "any"
+                                },
+                                "voucherId": {
+                                    "example": "any"
                                 }
                             }
                         }
@@ -698,6 +715,9 @@
                 "responses": {
                     "201": {
                         "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "404": {
                         "description": "Not Found"
@@ -994,6 +1014,156 @@
                     },
                     "400": {
                         "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/api/vouchers/": {
+            "post": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "example": "any"
+                                },
+                                "quantity": {
+                                    "example": "any"
+                                },
+                                "type": {
+                                    "example": "any"
+                                },
+                                "discountValue": {
+                                    "example": "any"
+                                },
+                                "maxDiscount": {
+                                    "example": "any"
+                                },
+                                "minOrderValue": {
+                                    "example": "any"
+                                },
+                                "expiryDate": {
+                                    "example": "any"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            },
+            "get": {
+                "description": "",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/vouchers/{code}": {
+            "get": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/vouchers/apply": {
+            "post": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "example": "any"
+                                },
+                                "totalPrice": {
+                                    "example": "any"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/vouchers/{id}": {
+            "delete": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "put": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 }
             }

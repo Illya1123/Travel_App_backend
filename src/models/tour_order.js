@@ -32,6 +32,18 @@ const tourOrderSchema = new Schema(
                     type: Number,
                     required: true,
                 },
+                date: {
+                    type: String,
+                    required: true,
+                },
+            },
+        ],
+        voucher: [
+            {
+                voucherId: {
+                    type: Types.ObjectId,
+                    ref: 'Voucher',
+                },
             },
         ],
         paymentMethod: {
@@ -42,6 +54,15 @@ const tourOrderSchema = new Schema(
         note: {
             type: String,
             default: '',
+        },
+        originalPrice: {
+            type: Number,
+            required: true,
+        },
+        discountAmount: {
+            type: Number,
+            required: true,
+            default: 0,
         },
         totalPrice: {
             type: Number,

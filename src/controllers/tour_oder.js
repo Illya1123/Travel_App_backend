@@ -1,35 +1,92 @@
 import TourOrder from '../models/tour_order.js'
 import User from '../models/user.js'
 import Tour from '../models/tour.js'
+import Voucher from '../models/voucher.js'
 import mongoose from 'mongoose'
 
 // Tạo đơn đặt tour
 export const createTourOrder = async (req, res) => {
     try {
-        const { userId, tour, paymentMethod, note, totalPrice } = req.body
+        const {
+            userId,
+            tour,
+            paymentMethod,
+            note,
+            totalPrice,
+            originalPrice,
+            discountAmount,
+            voucherId,
+        } = req.body
 
-        // Kiểm tra user có tồn tại không
+        // 1. Kiểm tra user
         const user = await User.findById(userId)
         if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại!' })
 
-        // Kiểm tra tour có tồn tại không
+        // 2. Kiểm tra các tour
         for (const item of tour) {
             const tourExists = await Tour.findById(item.tourId)
             if (!tourExists) return res.status(404).json({ message: 'Tour không tồn tại!' })
         }
 
+        // 3. Xử lý voucher (nếu có)
+        let finalPrice = totalPrice
+        let discount = 0
+        const appliedVoucher = []
+
+        if (voucherId) {
+            const voucher = await Voucher.findById(voucherId)
+
+            if (!voucher || !voucher.isActive || voucher.quantity <= 0) {
+                return res
+                    .status(400)
+                    .json({ message: 'Voucher không hợp lệ hoặc đã hết lượt sử dụng!' })
+            }
+
+            if (voucher.expiryDate && new Date(voucher.expiryDate) < new Date()) {
+                return res.status(400).json({ message: 'Voucher đã hết hạn!' })
+            }
+
+            if (totalPrice < (voucher.minOrderValue || 0)) {
+                return res.status(400).json({
+                    message: `Đơn hàng cần tối thiểu ${voucher.minOrderValue}đ để áp dụng voucher!`,
+                })
+            }
+
+            // Tính giảm giá
+            if (voucher.type === 'fixed') {
+                discount = voucher.discountValue
+            } else if (voucher.type === 'percentage') {
+                discount = (voucher.discountValue / 100) * totalPrice
+                if (voucher.maxDiscount && discount > voucher.maxDiscount) {
+                    discount = voucher.maxDiscount
+                }
+            }
+
+            finalPrice = totalPrice - discount
+            appliedVoucher.push({ voucherId })
+
+            // Trừ lượt sử dụng
+            voucher.quantity -= 1
+            await voucher.save()
+        }
+
+        // 4. Tạo đơn hàng
         const newOrder = new TourOrder({
             userId,
             status: 'Đã đặt',
             tour,
             paymentMethod,
             note,
+            originalPrice,
+            discountAmount: discountAmount || 0,
             totalPrice,
+            voucher: voucherId ? [{ voucherId }] : [],
         })
 
         await newOrder.save()
         res.status(201).json(newOrder)
     } catch (error) {
+        console.error('❌ Lỗi:', error)
         res.status(500).json({ message: 'Lỗi khi tạo đơn đặt tour!', error: error.message })
     }
 }

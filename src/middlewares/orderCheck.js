@@ -12,6 +12,7 @@ export const deleteExpiredOrders = async () => {
         })
 
         if (result.deletedCount > 0) {
+            clearTerminal()
             console.log(`🗑 Đã xóa ${result.deletedCount} đơn hàng quá hạn.`)
         }
     } catch (error) {
@@ -25,9 +26,11 @@ export const checkAllOrders = async () => {
         const orders = await TourOrder.find({ status: 'Chưa hoàn thành giao dịch' })
 
         if (orders.length === 0) {
-            // console.log("✅ Không có đơn hàng nào cần kiểm tra.");
-            return
+            return // Không log nếu không có đơn nào đang chờ xử lý
         }
+
+        clearTerminal()
+        console.log(`🔎 Đang kiểm tra ${orders.length} đơn hàng...`)
 
         for (const order of orders) {
             const { _id, orderId } = order
@@ -40,7 +43,6 @@ export const checkAllOrders = async () => {
                 )
 
                 const result = response.data
-                console.log(`📦 Đơn hàng ${orderId} - Kết quả:`, result)
 
                 if (result.success && result.data.resultCode === 0) {
                     await TourOrder.findByIdAndUpdate(_id, { status: 'Đã thanh toán' })
@@ -57,8 +59,14 @@ export const checkAllOrders = async () => {
     }
 }
 
+// Clear toàn bộ terminal (giống lệnh `clear`)
+const clearTerminal = () => {
+    process.stdout.write('\x1B[2J\x1B[0f') // clear screen & move cursor to top-left
+}
+
 // Chạy cron job mỗi 30 giây để kiểm tra đơn hàng
 export const startOrderCheckCron = () => {
+    console.log('⏰ Bắt đầu kiểm tra trạng thái đơn hàng mỗi 30 giây...')
     cron.schedule('*/30 * * * * *', () => {
         checkAllOrders()
     })
@@ -66,5 +74,6 @@ export const startOrderCheckCron = () => {
 
 // Chạy xóa đơn hàng hết hạn mỗi phút
 export const startDeleteExpiredOrdersInterval = () => {
+    console.log('🧹 Bắt đầu kiểm tra đơn hàng hết hạn mỗi phút...')
     setInterval(deleteExpiredOrders, 60 * 1000)
 }
