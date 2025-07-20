@@ -17,6 +17,7 @@ import {
     updateUserByAdmin,
     sendOTP,
     verifyOTP,
+    adminLogin,
 } from '../controllers/user.js'
 
 import { verifyAccessToken, isAdmin } from '../middlewares/verifyToken.js'
@@ -42,6 +43,7 @@ router.get('/forgotPasswordWithOtp', forgotPasswordUseOTP)
 router.put('/resetPasswordWithOtp', resetPasswordWithOTP)
 
 // Admin routes (require admin permission)
+router.post('/admin-login', adminLogin)
 router.get('/', [verifyAccessToken, isAdmin], getUsers)
 router.delete('/', [verifyAccessToken, isAdmin], deleteUser)
 router.put('/current', [verifyAccessToken], updateUser)

@@ -316,3 +316,31 @@ export const updateUserInfo = asyncHandler(async (req, res) => {
         updatedUser: updatedUser || 'Không thể cập nhật người dùng',
     })
 })
+
+export const adminLogin = asyncHandler(async (req, res) => {
+    const { email, password } = req.body
+    if (!email || !password) return res.status(400).json({ success: false, mes: 'Missing inputs' })
+
+    const response = await User.findOne({ email })
+    if (!response || !(await response.isCorrectPassword(password)))
+        throw new Error('Invalid credentials!')
+
+    if (response.role !== 'admin') {
+        return res.status(403).json({ success: false, mes: 'Bạn không có quyền truy cập admin' })
+    }
+
+    const { password: pwd, refreshToken, _id, ...rest } = response.toObject()
+    const userData = { id: _id, ...rest }
+
+    const accessToken = generateAccessToken(_id, response.role)
+    const newRefreshToken = generateRefreshToken(_id)
+
+    await User.findByIdAndUpdate(_id, { refreshToken: newRefreshToken }, { new: true })
+
+    res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
+    return res.status(200).json({ success: true, accessToken, userData })
+})
