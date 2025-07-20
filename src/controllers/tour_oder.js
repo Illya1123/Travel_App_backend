@@ -14,6 +14,8 @@ export const createTourOrder = async (req, res) => {
             note,
             totalPrice,
             originalPrice,
+            pickupPhone,
+            pickupAddress,
             discountAmount,
             voucherId,
         } = req.body
@@ -78,6 +80,8 @@ export const createTourOrder = async (req, res) => {
             paymentMethod,
             note,
             originalPrice,
+            pickupPhone,
+            pickupAddress,
             discountAmount: discountAmount || 0,
             totalPrice,
             voucher: voucherId ? [{ voucherId }] : [],
@@ -117,12 +121,16 @@ export const getTourOrdersByUserId = async (req, res) => {
 
         const userObjectId = new mongoose.Types.ObjectId(userId)
 
-        // Tìm tất cả đơn hàng của user, sử dụng .lean() để loại bỏ metadata của Mongoose
+        // Lấy tất cả đơn hàng và populate tourId nhưng KHÔNG lấy field `date` của Tour gốc
         const orders = await TourOrder.find({ userId: userObjectId })
-            .populate('userId', 'name email') // Lấy thông tin user
+            .populate('userId', 'name email')
             .populate({
                 path: 'tour.tourId',
-                select: 'title price services overview country image date', // Lấy thông tin tour
+                select: 'title price services overview country image', // ❌ Không lấy `date`
+            })
+            .populate({
+                path: 'voucher.voucherId',
+                select: 'code discountValue type', // ✅ Lấy thêm code
             })
             .lean()
 
@@ -132,14 +140,31 @@ export const getTourOrdersByUserId = async (req, res) => {
                 .json({ message: 'Không có đơn đặt tour nào cho người dùng này!' })
         }
 
-        // Lấy thông tin user từ đơn đặt tour đầu tiên
+        // Lấy thông tin người dùng từ đơn đầu tiên
         const userInfo = {
             name: orders[0].userId.name,
             email: orders[0].userId.email,
         }
 
-        // Loại bỏ userId khỏi từng order
-        const formattedOrders = orders.map(({ userId, ...order }) => order)
+        // Xử lý kết quả để giữ lại `date` từ `TourOrder` và gắn mã `code` từ `voucher`
+        const formattedOrders = orders.map(({ userId, voucher = [], ...order }) => {
+            // Thêm trường voucherCode (nếu có)
+            const voucherCode =
+                voucher.length > 0 && voucher[0].voucherId ? voucher[0].voucherId.code : null
+
+            return {
+                ...order,
+                tour: order.tour.map((item) => ({
+                    ...item,
+                    tourId: {
+                        ...item.tourId,
+                        // ✅ Giữ lại ngày đặt tour từ order, không bị ghi đè
+                        date: item.date,
+                    },
+                })),
+                voucherCode,
+            }
+        })
 
         res.status(200).json({
             user: userInfo,
@@ -191,5 +216,34 @@ export const deleteTourOrder = async (req, res) => {
         res.status(200).json({ message: 'Xóa đơn đặt tour thành công!' })
     } catch (error) {
         res.status(500).json({ message: 'Lỗi khi xóa đơn đặt tour!', error: error.message })
+    }
+}
+
+export const getOrderByOrderId = async (req, res) => {
+    const { orderId } = req.params
+
+    try {
+        const order = await TourOrder.findOne({ orderId }).populate('tour.tourId')
+
+        if (!order) {
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng' })
+        }
+
+        // Chuyển đổi sang object để có thể tùy chỉnh
+        const orderObj = order.toObject()
+
+        // Ghi đè date của tour từ TourOrder
+        orderObj.tour = orderObj.tour.map((tourItem) => ({
+            ...tourItem,
+            tourId: {
+                ...tourItem.tourId,
+                date: tourItem.date,
+            },
+        }))
+
+        return res.status(200).json({ success: true, order: orderObj })
+    } catch (error) {
+        console.error('Lỗi khi lấy đơn hàng:', error)
+        return res.status(500).json({ message: 'Lỗi server' })
     }
 }

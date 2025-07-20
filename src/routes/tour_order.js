@@ -5,6 +5,7 @@ import {
     getTourOrdersByUserId,
     updateTourOrderStatus,
     deleteTourOrder,
+    getOrderByOrderId,
 } from '../controllers/tour_oder.js'
 
 const router = express.Router()
@@ -14,5 +15,6 @@ router.get('/', getAllTourOrders)
 router.get('/user/:userId', getTourOrdersByUserId)
 router.put('/:id/status', updateTourOrderStatus)
 router.delete('/:id', deleteTourOrder)
+router.get('/order/:orderId', getOrderByOrderId)
 
 export default router

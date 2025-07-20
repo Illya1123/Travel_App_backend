@@ -582,6 +582,18 @@
                                 "originalPrice": {
                                     "example": "any"
                                 },
+                                "pickupPhone": {
+                                    "example": "any"
+                                },
+                                "pickupAddress": {
+                                    "example": "any"
+                                },
+                                "discountAmount": {
+                                    "example": "any"
+                                },
+                                "voucherId": {
+                                    "example": "any"
+                                },
                                 "paymentMethod": {
                                     "example": "any"
                                 },
@@ -598,6 +610,9 @@
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -700,6 +715,12 @@
                                     "example": "any"
                                 },
                                 "originalPrice": {
+                                    "example": "any"
+                                },
+                                "pickupPhone": {
+                                    "example": "any"
+                                },
+                                "pickupAddress": {
                                     "example": "any"
                                 },
                                 "discountAmount": {
@@ -811,6 +832,30 @@
                 "parameters": [
                     {
                         "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/tour-order/order/{orderId}": {
+            "get": {
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "orderId",
                         "in": "path",
                         "required": true,
                         "type": "string"

@@ -55,6 +55,14 @@ const tourOrderSchema = new Schema(
             type: String,
             default: '',
         },
+        pickupPhone: {
+            type: String,
+            required: true,
+        },
+        pickupAddress: {
+            type: String,
+            required: true,
+        },
         originalPrice: {
             type: Number,
             required: true,
