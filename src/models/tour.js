@@ -7,7 +7,7 @@ const tourSchema = new Schema(
             required: true,
         },
         image: {
-            type: String,
+            type: [String],
             required: true,
         },
         score: {
@@ -22,7 +22,6 @@ const tourSchema = new Schema(
         },
         date: {
             type: String,
-            required: true,
         },
         services: {
             type: [String],

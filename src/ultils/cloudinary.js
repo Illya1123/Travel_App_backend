@@ -19,4 +19,12 @@ const storage = new CloudinaryStorage({
     },
 })
 
-export { cloudinary, storage }
+const imageTourStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'image_tours',
+        allowed_formats: ['jpg', 'jpeg', 'png'],
+    },
+})
+
+export { cloudinary, storage, imageTourStorage }

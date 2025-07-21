@@ -37,6 +37,26 @@ export const createTour = async (req, res) => {
     }
 }
 
+export const updateTour = async (req, res) => {
+    const { id } = req.params
+    const updateData = req.body
+
+    try {
+        const updatedTour = await Tour.findByIdAndUpdate(id, updateData, {
+            new: true, // Trả về bản ghi đã cập nhật
+            runValidators: true, // Đảm bảo validation được áp dụng
+        })
+
+        if (!updatedTour) {
+            return res.status(404).json({ message: 'Không tìm thấy tour để cập nhật.' })
+        }
+
+        res.status(200).json({ message: 'Cập nhật tour thành công.', data: updatedTour })
+    } catch (error) {
+        res.status(500).json({ message: 'Lỗi server: Không thể cập nhật tour.' })
+    }
+}
+
 // Xóa tour theo ID
 export const deleteTour = async (req, res) => {
     const { id } = req.params
