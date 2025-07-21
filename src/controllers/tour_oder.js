@@ -101,7 +101,20 @@ export const getAllTourOrders = async (req, res) => {
         const orders = await TourOrder.find()
             .populate('userId', 'name email')
             .populate('tour.tourId', 'title price')
-        res.status(200).json(orders)
+            .populate('voucher.voucherId', 'code discountValue type') // Thêm dòng này
+
+        // Format lại kết quả để gắn thêm voucherCode nếu có
+        const formattedOrders = orders.map((order) => {
+            const voucherCode =
+                order.voucher?.[0]?.voucherId?.code || null
+
+            return {
+                ...order.toObject(),
+                voucherCode,
+            }
+        })
+
+        res.status(200).json(formattedOrders)
     } catch (error) {
         res.status(500).json({
             message: 'Lỗi khi lấy danh sách đơn đặt tour!',
