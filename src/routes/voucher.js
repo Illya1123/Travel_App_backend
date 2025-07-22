@@ -7,14 +7,15 @@ import {
     deleteVoucher,
     updateVoucher,
 } from '../controllers/voucher'
+import { verifyAccessToken, isAdmin } from '../middlewares/verifyToken.js'
 
 const router = express.Router()
 
-router.post('/', createVoucher)
-router.get('/', getAllVouchers)
+router.post('/', [verifyAccessToken, isAdmin], createVoucher)
+router.get('/', [verifyAccessToken, isAdmin], getAllVouchers)
 router.get('/:code', getVoucherByCode)
 router.post('/apply', applyVoucher)
-router.delete('/:id', deleteVoucher)
-router.put('/:id', updateVoucher)
+router.delete('/:id', [verifyAccessToken, isAdmin], deleteVoucher)
+router.put('/:id', [verifyAccessToken, isAdmin], updateVoucher)
 
 export default router
