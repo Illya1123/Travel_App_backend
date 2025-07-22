@@ -7,13 +7,17 @@ import cookieParser from 'cookie-parser'
 import { logRoutes } from './middlewares/logRoutes.js'
 import { startOrderCheckCron, startDeleteExpiredOrdersInterval } from './middlewares/orderCheck.js'
 
-delete process.env.URL_SERVER
-delete process.env.CLIENT_URL
-delete process.env.MOMO_REDIRECT_URL_V2
-delete process.env.MOMO_IPN_URL
+const isDevelopment = process.env.NODE_ENV === 'development'
+
+if (isDevelopment) {
+    delete process.env.URL_SERVER
+    delete process.env.CLIENT_URL
+    delete process.env.MOMO_REDIRECT_URL_V2
+    delete process.env.MOMO_IPN_URL
+}
 
 dotenv.config({
-    path: process.env.NODE_ENV === 'development' ? '.env.development' : '.env',
+    path: isDevelopment ? '.env.development' : '.env',
 })
 
 console.log('[ENV]', process.env.NODE_ENV)
