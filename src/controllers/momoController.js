@@ -111,20 +111,23 @@ export const momoCallback = async (req, res) => {
         console.log('Callback từ MoMo:', req.body)
         const { orderId, resultCode, message } = req.body
 
-        // Tìm đơn hàng dựa trên orderId
         const order = await TourOrder.findOne({ orderId })
-
         if (!order) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
         }
 
+        if (order.status === 'Đã thanh toán') {
+            return res.status(200).json({ success: true, message: 'Đơn hàng đã xử lý trước đó' })
+        }
+
         if (resultCode === 0) {
-            // Cập nhật trạng thái đơn hàng nếu thanh toán thành công
             order.status = 'Đã thanh toán'
             await order.save()
+
+            // Gửi mail hoặc logic khác tại đây
+
             return res.status(200).json({ success: true, message: 'Thanh toán thành công' })
         } else {
-            // Nếu thanh toán thất bại, có thể giữ nguyên trạng thái
             return res
                 .status(400)
                 .json({ success: false, message: message || 'Thanh toán thất bại' })

@@ -36,6 +36,8 @@ const allowedOrigins = [
 // Middlewares
 app.use(cors({
     origin: function (origin, callback) {
+        // Cho phép các request không có origin như từ Postman hoặc curl
+        if (!origin) return callback(null, true)
         if (allowedOrigins.includes(origin)) {
             return callback(null, true)
         } else {
@@ -58,7 +60,6 @@ initRoutes(app)
 // logRoutes(app);
 
 // Chạy kiểm tra đơn hàng định kỳ
-startOrderCheckCron()
 startDeleteExpiredOrdersInterval()
 
 export const viteNodeApp = app

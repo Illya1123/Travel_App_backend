@@ -63,7 +63,7 @@ export const applyVoucher = async (req, res) => {
         }
 
         let discountAmount = 0
-        if (voucher.type === 'percent') {
+        if (voucher.type === 'percentage') {
             discountAmount = Math.round((voucher.discountValue / 100) * totalPrice)
             if (voucher.maxDiscount) {
                 discountAmount = Math.min(discountAmount, voucher.maxDiscount)

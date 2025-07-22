@@ -9,11 +9,56 @@ export const getDashboardStats = async (req, res) => {
 
         const currentDate = new Date()
         const year = parseInt(req.query.year) || currentDate.getFullYear()
-        const month = parseInt(req.query.month) || currentDate.getMonth() + 1 // tháng 1 → 12
+        const month = parseInt(req.query.month) || currentDate.getMonth() + 1
+        const day = parseInt(req.query.day) || currentDate.getDate()
 
-        // Thời gian đầu và cuối tháng được chọn
         const startOfMonth = new Date(year, month - 1, 1)
         const endOfMonth = new Date(year, month, 0, 23, 59, 59)
+
+        // Khoảng thời gian hôm nay
+        const startOfToday = new Date()
+        startOfToday.setHours(0, 0, 0, 0)
+
+        const endOfToday = new Date()
+        endOfToday.setHours(23, 59, 59, 999)
+
+        // Khoảng thời gian ngày được chọn
+        const selectedStart = new Date(year, month - 1, day, 0, 0, 0)
+        const selectedEnd = new Date(year, month - 1, day, 23, 59, 59)
+
+        // Doanh thu hôm nay
+        const revenueToday = await TourOrder.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfToday, $lte: endOfToday },
+                    status: 'Đã thanh toán',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: '$totalPrice' },
+                },
+            },
+        ])
+        const todayRevenue = revenueToday[0]?.totalRevenue || 0
+
+        // Doanh thu ngày được chọn
+        const revenueSelectedDay = await TourOrder.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: selectedStart, $lte: selectedEnd },
+                    status: 'Đã thanh toán',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: '$totalPrice' },
+                },
+            },
+        ])
+        const selectedDayRevenue = revenueSelectedDay[0]?.totalRevenue || 0
 
         // Tổng tour đã đặt trong tháng
         const bookedToursInMonth = await TourOrder.aggregate([
@@ -76,7 +121,7 @@ export const getDashboardStats = async (req, res) => {
         ])
         const monthlyRevenue = revenueInMonth[0]?.totalRevenue || 0
 
-        // Doanh thu theo từng tháng của năm
+        // Doanh thu theo tháng
         const revenueByMonth = await TourOrder.aggregate([
             {
                 $match: {
@@ -104,16 +149,47 @@ export const getDashboardStats = async (req, res) => {
             }
         })
 
+        // Doanh thu theo ngày trong tháng
+        const revenueByDay = await TourOrder.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+                    status: 'Đã thanh toán',
+                },
+            },
+            {
+                $group: {
+                    _id: { $dayOfMonth: '$createdAt' },
+                    doanhThu: { $sum: '$totalPrice' },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ])
+
+        const daysInMonth = new Date(year, month, 0).getDate()
+        const dailyRevenue = Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1
+            const match = revenueByDay.find(item => item._id === day)
+            return {
+                ngay: `Ngày ${day}`,
+                doanhThu: match ? match.doanhThu : 0,
+            }
+        })
+
         return res.status(200).json({
             totalUsers,
             totalTours,
             totalBookedTours,
             totalCanceledTours,
             monthlyRevenue,
+            todayRevenue,
+            selectedDayRevenue,
             revenueChart: fullYearRevenue,
+            dailyRevenue,
         })
     } catch (error) {
         console.error('Error loading dashboard:', error)
         return res.status(500).json({ message: 'Lỗi khi tải dữ liệu dashboard' })
     }
 }
+
