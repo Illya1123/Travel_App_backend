@@ -1,36 +1,37 @@
 import User from '../models/user.js'
 import Tour from '../models/tour.js'
 import TourOrder from '../models/tour_order.js'
-import mongoose from 'mongoose'
 
 export const getDashboardStats = async (req, res) => {
     try {
         const totalUsers = await User.countDocuments()
         const totalTours = await Tour.countDocuments()
 
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        const currentYear = new Date().getFullYear()
+        const year = parseInt(req.query.year) || currentYear
+
+        const startOfMonth = new Date(year, new Date().getMonth(), 1)
+        const endOfMonth = new Date(year, new Date().getMonth() + 1, 0)
 
         // Tổng tour đã đặt trong tháng
         const bookedToursInMonth = await TourOrder.aggregate([
             {
                 $match: {
                     createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: { $in: ['Đã đặt', 'Đã thanh toán'] }
-                }
+                    status: { $in: ['Đã đặt', 'Đã thanh toán'] },
+                },
             },
             {
                 $project: {
                     tourCount: { $size: '$tour' },
-                }
+                },
             },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: '$tourCount' }
-                }
-            }
+                    total: { $sum: '$tourCount' },
+                },
+            },
         ])
         const totalBookedTours = bookedToursInMonth[0]?.total || 0
 
@@ -39,20 +40,20 @@ export const getDashboardStats = async (req, res) => {
             {
                 $match: {
                     createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: 'Đã hủy'
-                }
+                    status: 'Đã hủy',
+                },
             },
             {
                 $project: {
                     canceledCount: { $size: '$tour' },
-                }
+                },
             },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: '$canceledCount' }
-                }
-            }
+                    total: { $sum: '$canceledCount' },
+                },
+            },
         ])
         const totalCanceledTours = canceledToursInMonth[0]?.total || 0
 
@@ -61,43 +62,43 @@ export const getDashboardStats = async (req, res) => {
             {
                 $match: {
                     createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: 'Đã thanh toán'
-                }
+                    status: 'Đã thanh toán',
+                },
             },
             {
                 $group: {
                     _id: null,
-                    totalRevenue: { $sum: '$totalPrice' }
-                }
-            }
+                    totalRevenue: { $sum: '$totalPrice' },
+                },
+            },
         ])
         const monthlyRevenue = revenueInMonth[0]?.totalRevenue || 0
 
-        // Doanh thu theo 12 tháng
+        // Doanh thu theo 12 tháng trong năm được chọn
         const revenueByMonth = await TourOrder.aggregate([
             {
                 $match: {
                     createdAt: {
-                        $gte: new Date(now.getFullYear(), 0, 1),
-                        $lte: new Date(now.getFullYear(), 11, 31),
+                        $gte: new Date(year, 0, 1),
+                        $lte: new Date(year, 11, 31, 23, 59, 59),
                     },
                     status: 'Đã thanh toán',
-                }
+                },
             },
             {
                 $group: {
                     _id: { $month: '$createdAt' },
-                    doanhThu: { $sum: '$totalPrice' }
-                }
+                    doanhThu: { $sum: '$totalPrice' },
+                },
             },
-            { $sort: { _id: 1 } }
+            { $sort: { _id: 1 } },
         ])
 
         const fullYearRevenue = Array.from({ length: 12 }, (_, i) => {
-            const match = revenueByMonth.find(item => item._id === i + 1)
+            const match = revenueByMonth.find((item) => item._id === i + 1)
             return {
                 thang: `Th${i + 1}`,
-                doanhThu: match ? match.doanhThu : 0
+                doanhThu: match ? match.doanhThu : 0,
             }
         })
 
@@ -107,7 +108,7 @@ export const getDashboardStats = async (req, res) => {
             totalBookedTours,
             totalCanceledTours,
             monthlyRevenue,
-            revenueChart: fullYearRevenue
+            revenueChart: fullYearRevenue,
         })
     } catch (error) {
         console.error('Error loading dashboard:', error)

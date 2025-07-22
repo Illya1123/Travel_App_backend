@@ -105,8 +105,7 @@ export const getAllTourOrders = async (req, res) => {
 
         // Format lại kết quả để gắn thêm voucherCode nếu có
         const formattedOrders = orders.map((order) => {
-            const voucherCode =
-                order.voucher?.[0]?.voucherId?.code || null
+            const voucherCode = order.voucher?.[0]?.voucherId?.code || null
 
             return {
                 ...order.toObject(),
