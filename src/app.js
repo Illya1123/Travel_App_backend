@@ -7,7 +7,9 @@ import cookieParser from 'cookie-parser'
 import { logRoutes } from './middlewares/logRoutes.js'
 import { startOrderCheckCron, startDeleteExpiredOrdersInterval } from './middlewares/orderCheck.js'
 
-dotenv.config()
+dotenv.config({
+    path: process.env.NODE_ENV === 'development' ? '.env.development' : '.env',
+})
 const app = express()
 app.use(cookieParser())
 
