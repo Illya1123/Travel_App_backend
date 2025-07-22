@@ -7,11 +7,13 @@ export const getDashboardStats = async (req, res) => {
         const totalUsers = await User.countDocuments()
         const totalTours = await Tour.countDocuments()
 
-        const currentYear = new Date().getFullYear()
-        const year = parseInt(req.query.year) || currentYear
+        const currentDate = new Date()
+        const year = parseInt(req.query.year) || currentDate.getFullYear()
+        const month = parseInt(req.query.month) || currentDate.getMonth() + 1 // tháng 1 → 12
 
-        const startOfMonth = new Date(year, new Date().getMonth(), 1)
-        const endOfMonth = new Date(year, new Date().getMonth() + 1, 0)
+        // Thời gian đầu và cuối tháng được chọn
+        const startOfMonth = new Date(year, month - 1, 1)
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59)
 
         // Tổng tour đã đặt trong tháng
         const bookedToursInMonth = await TourOrder.aggregate([
@@ -35,7 +37,7 @@ export const getDashboardStats = async (req, res) => {
         ])
         const totalBookedTours = bookedToursInMonth[0]?.total || 0
 
-        // Tổng tour đã bị huỷ trong tháng
+        // Tổng tour bị huỷ trong tháng
         const canceledToursInMonth = await TourOrder.aggregate([
             {
                 $match: {
@@ -57,7 +59,7 @@ export const getDashboardStats = async (req, res) => {
         ])
         const totalCanceledTours = canceledToursInMonth[0]?.total || 0
 
-        // Tổng doanh thu tháng
+        // Doanh thu trong tháng
         const revenueInMonth = await TourOrder.aggregate([
             {
                 $match: {
@@ -74,7 +76,7 @@ export const getDashboardStats = async (req, res) => {
         ])
         const monthlyRevenue = revenueInMonth[0]?.totalRevenue || 0
 
-        // Doanh thu theo 12 tháng trong năm được chọn
+        // Doanh thu theo từng tháng của năm
         const revenueByMonth = await TourOrder.aggregate([
             {
                 $match: {
