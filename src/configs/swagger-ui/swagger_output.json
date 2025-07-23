@@ -1373,6 +1373,11 @@
             "name": "month",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {

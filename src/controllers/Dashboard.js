@@ -61,47 +61,17 @@ export const getDashboardStats = async (req, res) => {
         const selectedDayRevenue = revenueSelectedDay[0]?.totalRevenue || 0
 
         // Tổng tour đã đặt trong tháng
-        const bookedToursInMonth = await TourOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: { $in: ['Đã đặt', 'Đã thanh toán'] },
-                },
-            },
-            {
-                $project: {
-                    tourCount: { $size: '$tour' },
-                },
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: '$tourCount' },
-                },
-            },
-        ])
+        const bookedToursInMonth = await TourOrder.countDocuments({
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+            status: { $in: ['Đã đặt', 'Đã thanh toán'] },
+        })
         const totalBookedTours = bookedToursInMonth[0]?.total || 0
 
         // Tổng tour bị huỷ trong tháng
-        const canceledToursInMonth = await TourOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: 'Đã hủy',
-                },
-            },
-            {
-                $project: {
-                    canceledCount: { $size: '$tour' },
-                },
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: '$canceledCount' },
-                },
-            },
-        ])
+        const canceledToursInMonth = await TourOrder.countDocuments({
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+            status: 'Đã hủy',
+        })
         const totalCanceledTours = canceledToursInMonth[0]?.total || 0
 
         // Doanh thu trong tháng
@@ -169,7 +139,7 @@ export const getDashboardStats = async (req, res) => {
         const daysInMonth = new Date(year, month, 0).getDate()
         const dailyRevenue = Array.from({ length: daysInMonth }, (_, i) => {
             const day = i + 1
-            const match = revenueByDay.find(item => item._id === day)
+            const match = revenueByDay.find((item) => item._id === day)
             return {
                 ngay: `Ngày ${day}`,
                 doanhThu: match ? match.doanhThu : 0,
@@ -179,8 +149,8 @@ export const getDashboardStats = async (req, res) => {
         return res.status(200).json({
             totalUsers,
             totalTours,
-            totalBookedTours,
-            totalCanceledTours,
+            totalBookedTours: bookedToursInMonth,
+            totalCanceledTours: canceledToursInMonth,
             monthlyRevenue,
             todayRevenue,
             selectedDayRevenue,
@@ -192,4 +162,3 @@ export const getDashboardStats = async (req, res) => {
         return res.status(500).json({ message: 'Lỗi khi tải dữ liệu dashboard' })
     }
 }
-
