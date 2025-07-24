@@ -23,7 +23,7 @@ const imageTourStorage = new CloudinaryStorage({
     cloudinary,
     params: {
         folder: 'image_tours',
-        allowed_formats: ['jpg', 'jpeg', 'png'],
+        allowed_formats: ['jpg', 'jpeg', 'png','webp'],
     },
 })
 
