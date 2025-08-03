@@ -33,6 +33,7 @@ var userSchema = new Schema(
         role: {
             type: String,
             default: 'user',
+            enum: ['user', 'admin', 'collaborator'],
         },
         address: {
             type: String,
@@ -57,6 +58,12 @@ var userSchema = new Schema(
         passwordResetExpires: {
             type: String,
         },
+        managedAccommodations: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Accommodation',
+            },
+        ],
     },
     {
         timestamps: true,
