@@ -27,4 +27,12 @@ const imageTourStorage = new CloudinaryStorage({
     },
 })
 
-export { cloudinary, storage, imageTourStorage }
+const rentalCarStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'cars',
+        allowed_formats: ['jpg', 'jpeg', 'png','webp'],
+    },
+})
+
+export { cloudinary, storage, imageTourStorage, rentalCarStorage }

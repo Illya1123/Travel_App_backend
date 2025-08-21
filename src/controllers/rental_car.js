@@ -34,7 +34,7 @@ export const createManyCars = async (req, res) => {
 // Lấy danh sách tất cả các xe
 export const getAllCars = async (req, res) => {
     try {
-        const cars = await Car.find().populate('owner', 'name email mobile')
+        const cars = await Car.find().populate('owner', 'name email mobile role')
         res.status(200).json(cars)
     } catch (error) {
         res.status(500).json({ error: error.message })
@@ -44,7 +44,7 @@ export const getAllCars = async (req, res) => {
 // Lấy chi tiết 1 xe theo ID
 export const getCarById = async (req, res) => {
     try {
-        const car = await Car.findById(req.params.id).populate('owner', 'name email mobile')
+        const car = await Car.findById(req.params.id).populate('owner', 'name email mobile role')
         if (!car) return res.status(404).json({ message: 'Không tìm thấy xe' })
         res.status(200).json(car)
     } catch (error) {

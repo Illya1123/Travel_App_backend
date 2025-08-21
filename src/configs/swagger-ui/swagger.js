@@ -1,11 +1,13 @@
 import swaggerAutogen from 'swagger-autogen'
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.development' });
 
 const doc = {
     info: {
         title: 'Travel App API Project',
         description: 'API documentation for Travel application',
     },
-    host: 'localhost:3000',
+    host: `${process.env.URL_SWAGGER}:${process.env.PORT}`,
     schemes: ['http'],
     // securityDefinitions: {
     //     bearerAuth: {

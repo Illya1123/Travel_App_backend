@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import asyncHandler from 'express-async-handler'
+import rental_car from '../models/rental_car.js'
 
 export const verifyAccessToken = asyncHandler(async (req, res, next) => {
     if (req?.headers?.authorization?.startsWith('Bearer')) {
@@ -8,7 +9,7 @@ export const verifyAccessToken = asyncHandler(async (req, res, next) => {
             if (err)
                 return res.status(401).json({
                     success: false,
-                    mes: 'Invalid access token',
+                    mes: 'Không nhận token',
                 })
             req.user = decode
             next()
@@ -16,7 +17,7 @@ export const verifyAccessToken = asyncHandler(async (req, res, next) => {
     } else {
         return res.status(401).json({
             success: false,
-            mes: 'Require authentication!!!',
+            mes: 'Cần xác thực!!!',
         })
     }
 })
@@ -26,8 +27,56 @@ export const isAdmin = asyncHandler((req, res, next) => {
     if (role !== 'admin') {
         return res.status(401).json({
             success: false,
-            mes: 'REQUIRE ADMIN ROLE',
+            mes: 'CẦN QUYỀN ADMIN',
         })
     }
     next()
+})
+
+// Chỉ chủ xe mới được sửa
+export const isCarOwner = asyncHandler(async (req, res, next) => {
+    const carId = req.params.id
+
+    const car = await rental_car.findById(carId)
+    if (!car) {
+        return res.status(404).json({
+            success: false,
+            message: 'Không tìm thấy xe',
+        })
+    }
+
+    if (car.owner?.toString() !== req.user._id) {
+        return res.status(403).json({
+            success: false,
+            message: 'Bạn không có quyền chỉnh sửa hoặc xoá xe này',
+        })
+    }
+
+    req.car = car
+    next()
+})
+
+// Chủ xe HOẶC Admin đều được phép xoá/sửa
+export const isCarOwnerOrAdmin = asyncHandler(async (req, res, next) => {
+    const carId = req.params.id
+    const userId = req.user._id
+    const userRole = req.user.role
+
+    const car = await rental_car.findById(carId)
+    if (!car) {
+        return res.status(404).json({
+            success: false,
+            message: 'Không tìm thấy xe',
+        })
+    }
+
+    if (car.owner?.toString() === userId || userRole === 'admin') {
+        req.car = car
+        return next()
+    }
+
+    return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền thực hiện hành động này',
+    })
 })

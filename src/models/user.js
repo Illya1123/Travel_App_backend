@@ -1,5 +1,5 @@
 import { Schema, Types, model } from 'mongoose'
-import { genSaltSync, hash, compare } from 'bcrypt'
+import { genSaltSync, hash, compare } from 'bcryptjs'
 import { randomBytes, createHash } from 'crypto'
 
 const DEFAULT_AVATAR_PATH =
